@@ -129,3 +129,16 @@ Como podemos ver, temos código repetido dentro do nosso arquivo. Para ajudar ni
 ```
 
 Assim ele instalará todos os pacotes necessários para executarmos nosso trabalho.
+
+Agora, podemos também reduzir a necessidade de passar o usuário e caminho da chave privada quando executamos `ansible-playbook`, para isto basta alterarmos o arquivo hosts:
+
+```yml
+[wordpress]
+172.17.177.40 ansible_user=vagrant ansible_ssh_private_key="/storage/cursos/alura/ansible/.vagrant/machines/wordpress/virtualbox/private_key"
+```
+
+Desta forma o comando ficará bem mais enxuto:
+
+```bash
+ansible-playbook provisioning.yml -i hosts
+```
