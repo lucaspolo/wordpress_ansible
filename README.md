@@ -102,3 +102,30 @@ Agora que conseguimos instalar o PHP, podemos prosseguir e instalar o Apache 2 e
 ```
 
 Com isto, basta rodar novamente o ansible-playbook e ele irá instalar as dependências. Confira em (http://172.17.177.40) se a página default do Apache aparece.
+
+## Aula 3: Boas práticas
+
+Como podemos ver, temos código repetido dentro do nosso arquivo. Para ajudar nisso é possível iterar sobre uma lista passada para dentro do playbook para que possamos repetir o mesmo comando para diversos itens:
+
+```yml
+---
+- hosts: all
+  tasks:
+  - name: 'Instala pacotes de dependência do sistema operacional'
+    apt:
+      name: "{{ item }}"
+      state: latest
+    become: yes
+    with_items:
+      - php5
+      - apache2
+      - libapache2-mod-php5
+      - php5-gd
+      - libssh2-php
+      - php5-mcrypt
+      - mysql-server-5.6
+      - python-mysqldb
+      - php5-mysql
+```
+
+Assim ele instalará todos os pacotes necessários para executarmos nosso trabalho.
