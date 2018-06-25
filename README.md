@@ -18,3 +18,33 @@ Hello, world
 
 lucaspolo@nb:~/storage/cursos/alura/ansible$
 ```
+
+## Aula 2: Criação do primeiro playbook
+
+Definiremos o nosso playbook através do arquivo que criaremos `provisioning.yml`.
+
+```yml
+---
+- hosts: all
+  tasks:
+    - shell: 'echo hello > /vagrant/world.txt'
+```
+
+Assim, agora o comando que iremos executar para que ele leia este arquivo e trabalhe é o seguinte:
+
+```bash
+lucaspolo@nb:/storage/cursos/alura/ansible$ ansible-playbook provisioning.yml -u vagrant -i hosts --private-key .vagrant/machines/wordpress/virtualbox/private_key
+
+PLAY [all] ************************************************************************************************************************************************************************************
+
+TASK [Gathering Facts] ************************************************************************************************************************************************************************
+ok: [172.17.177.40]
+
+TASK [shell] **********************************************************************************************************************************************************************************
+changed: [172.17.177.40]
+
+PLAY RECAP ************************************************************************************************************************************************************************************
+172.17.177.40              : ok=2    changed=1    unreachable=0    failed=0
+```
+
+Assim, agora acessando a máquina com o comando `vagrant ssh` e verificando o diretório /vagrant podemos ver que foi criado o arquivo world.txt. Nossa receita funcionou e podemos seguir adiante com a configuração.
