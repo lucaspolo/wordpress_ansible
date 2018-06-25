@@ -1,2 +1,2 @@
 [wordpress]
-172.17.177.40
+172.17.177.40 ansible_user=vagrant ansible_ssh_private_key="/storage/cursos/alura/ansible/.vagrant/machines/wordpress/virtualbox/private_key"
