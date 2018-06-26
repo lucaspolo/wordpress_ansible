@@ -160,3 +160,18 @@ Para criar o banco de dados é bem simples, basta incluirmos um novo comando den
 ```
 
 Após rodarmos novamente o ansible-playbook podemos conferir a criação do banco de dados.
+
+Para criarmos o usuário do banco de dados também criaremos uma nova task, desta vez usando o módulo `mysql_user`:
+
+```yml
+- hosts: all
+  tasks:
+  ...outras tasks
+  - name: 'Cria o usuário do banco de dados'
+    mysql_user:
+      login_user: root
+      name: wordpress_user
+      password: 12345
+      priv: 'wordpress_db.*:ALL'
+      state: present
+```
