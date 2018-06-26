@@ -142,3 +142,21 @@ Desta forma o comando ficará bem mais enxuto:
 ```bash
 ansible-playbook provisioning.yml -i hosts
 ```
+
+## Aula 4: Preparando o banco de dados
+
+Para criar o banco de dados é bem simples, basta incluirmos um novo comando dentro do playbook, passando o nome do banco, o usuário e o state:
+
+```yml
+---
+- hosts: all
+  tasks:
+  ...outras tasks
+  - name: 'Cria o banco do MySQL'
+    mysql_db: 
+      name: wordpress_db
+      login_user: root
+      state: present
+```
+
+Após rodarmos novamente o ansible-playbook podemos conferir a criação do banco de dados.
