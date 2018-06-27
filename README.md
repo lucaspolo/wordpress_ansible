@@ -55,7 +55,7 @@ Alteramos o nosso playbook para que agora ele execute o comando `apt` como root 
 ---
 - hosts: all
   tasks:
-  - apt: 
+  - apt:
       name: php5
       state: latest
     become: yes
@@ -85,7 +85,7 @@ Agora que conseguimos instalar o PHP, podemos prosseguir e instalar o Apache 2 e
 - hosts: all
   tasks:
   - name: 'Instala o PHP 5 na última versão'
-    apt: 
+    apt:
       name: php5
       state: latest
     become: yes
@@ -153,7 +153,7 @@ Para criar o banco de dados é bem simples, basta incluirmos um novo comando den
   tasks:
   ...outras tasks
   - name: 'Cria o banco do MySQL'
-    mysql_db: 
+    mysql_db:
       name: wordpress_db
       login_user: root
       state: present
@@ -175,3 +175,33 @@ Para criarmos o usuário do banco de dados também criaremos uma nova task, dest
       priv: 'wordpress_db.*:ALL'
       state: present
 ```
+
+## Aula 5: Instalação do servidor e deploy da aplicação
+
+Precisamos agora baixar o Wordpress para a nossa máquina, para isto podemos usar a task `get_url`:
+
+```yml
+- hosts: all
+  tasks:
+  ...outras tasks
+  - name: 'Download do arquivo de instalação do Wordpress'
+    get_url:
+      url: 'https://wordpress.org/latest.tar.gz'
+      dest: '/tmp/wordpress.tar.gz'
+```
+
+Após isso é necessário descompactar a pasta dentro do seu destino, podemos usar a task `unarchive`:
+
+```yml
+- hosts: all
+  tasks:
+  ...outras tasks
+  - name: 'Descompacta o arquivo do Wordpress'
+    unarchive:
+      src: '/tmp/wordpress.tar.gz'
+      dest: '/var/www/'
+      remote_src: yes
+    become: yes
+```
+
+Para a task saber que o arquivo de origem está na máquina remota é necessário colocar o parametro `remote_src` como `yes`. Outra necessidade é executar a task como root, para isto o `become` `yes`.
