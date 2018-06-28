@@ -1,5 +1,11 @@
 ---
 - hosts: all
+  handlers:
+  - name: restart apache
+    service:
+      name: apache2
+      state: restarted
+    become: yes
   tasks:
   - name: 'Instala pacotes de dependência do sistema operacional'
     apt:
@@ -57,3 +63,11 @@
       - { regex: 'username_here', value: 'wordpress_user' }
       - { regex: 'password_here', value: '12345' }
     become: yes
+
+  - name: 'Copiar o arquivo 000-default.conf para o diretório do Apache'
+    copy:
+      src: 'files/000-default.conf'
+      dest: '/etc/apache2/sites-available/000-default.conf'
+    become: yes
+    notify:
+      - restart apache

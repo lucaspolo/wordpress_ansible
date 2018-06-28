@@ -101,7 +101,7 @@ Agora que conseguimos instalar o PHP, podemos prosseguir e instalar o Apache 2 e
     become: yes
 ```
 
-Com isto, basta rodar novamente o ansible-playbook e ele irá instalar as dependências. Confira em (http://172.17.177.40) se a página default do Apache aparece.
+Com isto, basta rodar novamente o ansible-playbook e ele irá instalar as dependências. Confira [aqui](http://172.17.177.40) se a página default do Apache aparece.
 
 ## Aula 3: Boas práticas
 
@@ -237,3 +237,46 @@ Após copia-lo, vamos alterar suas configurações, o arquivo possui palavras ch
       - { regex: 'password_here', value: '12345' }
     become: yes
 ```
+
+Agora que temos o banco de dados e o Wordpress configurados, podemos então configurar o Apache para iniciar a partir do diretório do Wordpress, para isto basta copiarmos um arquivo de configuração:
+
+```yml
+- hosts: all
+  tasks:
+  ...outras tasks
+  - name: 'Copiar o arquivo 000-default.conf para o diretório do Apache'
+    copy:
+      src: 'files/000-default.conf'
+      dest: '/etc/apache2/sites-available/000-default.conf'
+    become: yes
+```
+
+Após a criação desta nova task é necessário reiniciarmos o Apache para que ele considere a nova configuração, para isto a melhor prática é associarmos um handler a esta nossa task de cópia do arquivo de configuração. Primeiro criaremos o nosso handler, antes da sequência das tasks (no inicio do arquivo playbook). Muito similar a uma task, usaremos a `service` que ajuda a controlar os serviços que estão executando:
+
+```yml
+- hosts: all
+  handlers:
+  - name: restart apache
+    service:
+      name: apache2
+      state: restarted
+    become: yes
+```
+
+Agora alteramos nossa task de cópia do arquivo de configuração para chamarmos nosso handler quando ela executar:
+
+```yml
+- hosts: all
+  ...handlers
+  tasks:
+  ...outras tasks
+  - name: 'Copiar o arquivo 000-default.conf para o diretório do Apache'
+    copy:
+      src: 'files/000-default.conf'
+      dest: '/etc/apache2/sites-available/000-default.conf'
+    become: yes
+    notify:
+      - restart apache
+```
+
+Agora ao executarmos o playbook e entrarmos no servidor, já entraremos no Wordpress, onde podemos configura-lo normalmente.
