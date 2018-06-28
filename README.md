@@ -205,3 +205,35 @@ Após isso é necessário descompactar a pasta dentro do seu destino, podemos us
 ```
 
 Para a task saber que o arquivo de origem está na máquina remota é necessário colocar o parametro `remote_src` como `yes`. Outra necessidade é executar a task como root, para isto o `become` `yes`.
+
+Agora é necessário criar o arquivo de configuração do Wordpress, para isto vamos copiar o arquivo de exemplo que ele já possui no diretório:
+
+```yml
+- hosts: all
+  tasks:
+  ...outras tasks
+  - name: 'Copiar o arquivo de configuração'
+    copy:
+      src: '/var/www/wordpress/wp-config-sample.php'
+      dest: '/var/www/wordpress/wp-config.php'
+      remote_src: yes
+    become: yes
+```
+
+Após copia-lo, vamos alterar suas configurações, o arquivo possui palavras chaves que devem ser substituidas, podemos usar a task `replace` para realizar esta tarefa. Como iremos tratar três pontos diferentes, vamos novamente utilizar uma lista de parâmetros, só que desta vez composta:
+
+```yml
+- hosts: all
+  tasks:
+  ...outras tasks
+  - name: 'Alterar configurações do Wordpress'
+    replace:
+      path: '/var/www/wordpress/wp-config.php'
+      regexp: "{{ item.regex }}"
+      replace: "{{ item.value }}"
+    with_items:
+      - { regex: 'database_name_here', value: 'wordpress_db' }
+      - { regex: 'username_here', value: 'wordpress_user' }
+      - { regex: 'password_here', value: '12345' }
+    become: yes
+```
