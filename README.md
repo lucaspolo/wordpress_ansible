@@ -280,3 +280,125 @@ Agora alteramos nossa task de cópia do arquivo de configuração para chamarmos
 ```
 
 Agora ao executarmos o playbook e entrarmos no servidor, já entraremos no Wordpress, onde podemos configura-lo normalmente.
+
+## Separando banco e aplicação
+
+Para separarmos a aplicação do banco de dados é necessário definirmos em `hosts` qual é o novo servidor (de BD):
+
+```yml
+[wordpress]
+172.17.177.40 ansible_user=vagrant ansible_ssh_private_key_file="/storage/cursos/alura/ansible/.vagrant/machines/wordpress/virtualbox/private_key"
+
+[database]
+172.17.177.42 ansible_user=vagrant ansible_ssh_private_key_file="/storage/cursos/alura/ansible/.vagrant/machines/mysql/virtualbox/private_key"
+```
+
+Depois disso precisamos separar no playbook qual é a configuração de cada servidor, além é claro de alterar a configuração do host de banco de dados do Wordpress e a configuração de acesso do MySQL (que por padrão só permite localhost):
+
+```yml
+---
+- hosts: database
+  handlers:
+    - name: restart mysql
+      service:
+        name: mysql
+        state: restarted
+      become: yes
+
+  tasks:
+  - name: 'Instala pacotes de dependência do sistema operacional'
+    apt:
+      name: "{{ item }}"
+      state: latest
+    become: yes
+    with_items:
+      - mysql-server-5.6
+      - python-mysqldb
+
+  - name: 'Cria o banco do MySQL'
+    mysql_db: 
+      name: wordpress_db
+      login_user: root
+      state: present
+
+  - name: 'Cria o usuário do banco de dados'
+    mysql_user:
+      login_user: root
+      name: wordpress_user
+      password: 12345
+      priv: 'wordpress_db.*:ALL'
+      state: present
+      host: "{{ item }}"
+    with_items:
+      - 'localhost'
+      - '127.0.0.1'
+      - '172.17.177.40'
+
+  - name: 'Copia o arquivo de configuração do MySQL'
+    copy:
+      src: 'files/my.cnf'
+      dest: '/etc/mysql/my.cnf'
+    become: yes
+    notify:
+      - restart mysql
+
+- hosts: wordpress
+  handlers:
+  - name: restart apache
+    service:
+      name: apache2
+      state: restarted
+    become: yes
+  tasks:
+  - name: 'Instala pacotes de dependência do sistema operacional'
+    apt:
+      name: "{{ item }}"
+      state: latest
+    become: yes
+    with_items:
+      - php5
+      - apache2
+      - libapache2-mod-php5
+      - php5-gd
+      - libssh2-php
+      - php5-mcrypt
+      - php5-mysql
+      
+  - name: 'Download do arquivo de instalação do Wordpress'
+    get_url:
+      url: 'https://wordpress.org/latest.tar.gz'
+      dest: '/tmp/wordpress.tar.gz'
+  - name: 'Descompacta o arquivo do Wordpress'
+    unarchive:
+      src: '/tmp/wordpress.tar.gz'
+      dest: '/var/www/'
+      remote_src: yes
+    become: yes
+
+  - name: 'Copiar o arquivo de configuração'
+    copy:
+      src: '/var/www/wordpress/wp-config-sample.php'
+      dest: '/var/www/wordpress/wp-config.php'
+      remote_src: yes
+    become: yes
+
+  - name: 'Alterar configurações do Wordpress'
+    replace:
+      path: '/var/www/wordpress/wp-config.php'
+      regexp: "{{ item.regex }}"
+      replace: "{{ item.value }}"
+    with_items:
+      - { regex: 'database_name_here', value: 'wordpress_db' }
+      - { regex: 'username_here', value: 'wordpress_user' }
+      - { regex: 'password_here', value: '12345' }
+      - { regex: 'localhost', value: '172.17.177.42' }
+    become: yes
+
+  - name: 'Copiar o arquivo 000-default.conf para o diretório do Apache'
+    copy:
+      src: 'files/000-default.conf'
+      dest: '/etc/apache2/sites-available/000-default.conf'
+    become: yes
+    notify:
+      - restart apache
+```
