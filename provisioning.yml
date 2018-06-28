@@ -28,6 +28,7 @@
       password: 12345
       priv: 'wordpress_db.*:ALL'
       state: present
+      
   - name: 'Download do arquivo de instalação do Wordpress'
     get_url:
       url: 'https://wordpress.org/latest.tar.gz'
@@ -37,4 +38,22 @@
       src: '/tmp/wordpress.tar.gz'
       dest: '/var/www/'
       remote_src: yes
+    become: yes
+
+  - name: 'Copiar o arquivo de configuração'
+    copy:
+      src: '/var/www/wordpress/wp-config-sample.php'
+      dest: '/var/www/wordpress/wp-config.php'
+      remote_src: yes
+    become: yes
+
+  - name: 'Alterar configurações do Wordpress'
+    replace:
+      path: '/var/www/wordpress/wp-config.php'
+      regexp: "{{ item.regex }}"
+      replace: "{{ item.value }}"
+    with_items:
+      - { regex: 'database_name_here', value: 'wordpress_db' }
+      - { regex: 'username_here', value: 'wordpress_user' }
+      - { regex: 'password_here', value: '12345' }
     become: yes
