@@ -19,22 +19,22 @@
 
   - name: 'Cria o banco do MySQL'
     mysql_db: 
-      name: wordpress_db
+      name: "{{ wp_db_name }}"
       login_user: root
       state: present
 
   - name: 'Cria o usuário do banco de dados'
     mysql_user:
       login_user: root
-      name: wordpress_user
-      password: 12345
-      priv: 'wordpress_db.*:ALL'
+      name: "{{ wp_db_user }}"
+      password: "{{ wp_db_pass }}"
+      priv: "{{ wp_db_name }}.*:ALL"
       state: present
       host: "{{ item }}"
     with_items:
       - 'localhost'
       - '127.0.0.1'
-      - '172.17.177.40'
+      - "{{ wp_db_ip }}"
 
   - name: 'Copia o arquivo de configuração do MySQL'
     copy:
@@ -79,21 +79,21 @@
 
   - name: 'Copiar o arquivo de configuração'
     copy:
-      src: '/var/www/wordpress/wp-config-sample.php'
-      dest: '/var/www/wordpress/wp-config.php'
+      src: "{{ wp_installation_dir }}/wp-config-sample.php"
+      dest: "{{ wp_installation_dir }}/wp-config.php"
       remote_src: yes
     become: yes
 
   - name: 'Alterar configurações do Wordpress'
     replace:
-      path: '/var/www/wordpress/wp-config.php'
+      path: "{{ wp_installation_dir }}/wp-config.php"
       regexp: "{{ item.regex }}"
       replace: "{{ item.value }}"
     with_items:
-      - { regex: 'database_name_here', value: 'wordpress_db' }
-      - { regex: 'username_here', value: 'wordpress_user' }
-      - { regex: 'password_here', value: '12345' }
-      - { regex: 'localhost', value: '172.17.177.42' }
+      - { regex: 'database_name_here', value: "{{ wp_db_name }}" }
+      - { regex: 'username_here', value: "{{ wp_db_user }}" }
+      - { regex: 'password_here', value: "{{ wp_db_pass }}" }
+      - { regex: 'localhost', value: "{{ wp_db_ip }}" }
     become: yes
 
   - name: 'Copiar o arquivo 000-default.conf para o diretório do Apache'
