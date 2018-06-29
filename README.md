@@ -402,3 +402,41 @@ Depois disso precisamos separar no playbook qual é a configuração de cada ser
     notify:
       - restart apache
 ```
+
+## Aula 7:  Trabalhando com variáveis e templates
+
+Como podemos ver no nosso código atual, repetimos muitas vezes os mesmos nomes, para facilitar isto dentro do nosso playbook é possível utilizar variáveis, permitindo assim elimitar repetições de constantes. Para isto é necessário criarmos um arquivo yml dentro de um diretório chamado `group_var`. Este arquivo irá contar nossas variáveis:
+
+```yml
+---
+wp_db_name: wordpress_db
+wp_db_user: wordpress_user
+wp_db_pass: 12345
+wp_installation_dir: '/var/www/wordpress'
+wp_host_ip: '172.17.177.40'
+wp_db_ip: '172.17.177.42'
+```
+
+Depois de criado o nosso arquivo de variáveis podemos utiliza-las dentro do nosso playbook, para isto basta invoca-las através do seu nome colocando-as dentro de chaves duplas, ficando `{{ variavel }}`, como nos exemplos abaixo:
+
+```yml
+---
+- hosts: database
+  ...
+  tasks:
+  - name: 'Instala pacotes de dependência do sistema operacional'
+    apt:
+      name: "{{ item }}"
+      state: latest
+    become: yes
+    with_items:
+      - mysql-server-5.6
+      - python-mysqldb
+  - name: 'Cria o banco do MySQL'
+    mysql_db: 
+      name: "{{ wp_db_name }}"
+      login_user: root
+      state: present
+```
+
+Ao executar as variáveis serão substituidas pelos seus respectivos valores.
