@@ -34,7 +34,7 @@
     with_items:
       - 'localhost'
       - '127.0.0.1'
-      - "{{ wp_db_ip }}"
+      - "{{ wp_host_ip }}"
 
   - name: 'Copia o arquivo de configuração do MySQL'
     copy:
@@ -96,9 +96,9 @@
       - { regex: 'localhost', value: "{{ wp_db_ip }}" }
     become: yes
 
-  - name: 'Copiar o arquivo 000-default.conf para o diretório do Apache'
-    copy:
-      src: 'files/000-default.conf'
+  - name: 'Configura Apache para servir Wordpress'
+    template:
+      src: 'templates/000-default.conf.j2'
       dest: '/etc/apache2/sites-available/000-default.conf'
     become: yes
     notify:
