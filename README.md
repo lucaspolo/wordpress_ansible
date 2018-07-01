@@ -384,3 +384,37 @@ Depois de criado o nosso arquivo de variáveis podemos utiliza-las dentro do nos
 ```
 
 Ao executar as variáveis serão substituidas pelos seus respectivos valores.
+
+A utilização de variáveis facilitou a configuração, porém dentro do arquivo `000-default.conf` ainda temos o apontamento para um diretório de forma estáttica. Podemos ajustar isso utilizando templates, onde colocaremos dentro do arquivo a variável utilizada e utilizaremos uma task `tempĺate` para substituir o arquivo.
+
+Primeiro colocamos a variável em nosso arquivo:
+
+```conf
+        # match this virtual host. For the default virtual host (this file) this
+        # value is not decisive as it is used as a last resort host regardless.
+        # However, you must set it for any further virtual host explicitly.
+        #ServerName www.example.com  
+
+        ServerAdmin webmaster@localhost
+        DocumentRoot {{ wp_installation_dir }}
+
+        # Available loglevels: trace8, ..., trace1, debug, info, notice, warn,
+        # error, crit, alert, emerg.
+        # It is also possible to configure the loglevel for particular
+        # modules, e.g.
+        #LogLevel info ssl:warn
+```
+
+Salvamos este arquivo em diretório templates, depois criamos a nossa task no lugar da anterior, onde copiávamos o arquivo:
+
+```yml
+  - name: 'Configura Apache para servir Wordpress'
+    template:
+      src: 'templates/000-default.conf.j2'
+      dest: '/etc/apache2/sites-available/000-default.conf'
+    become: yes
+    notify:
+      - restart apache
+```
+
+Assim ele irá copiar o arquivo aplicando a variável necessária.
