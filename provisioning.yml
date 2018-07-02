@@ -4,5 +4,4 @@
     - mysql
 - hosts: wordpress
   roles:
-    - webserver
     - wordpress

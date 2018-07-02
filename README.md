@@ -421,7 +421,7 @@ Assim ele irá copiar o arquivo aplicando a variável necessária.
 
 ## Aula 8: Usando roles, dependências e defaults
 
-Podemos separa mais eficientemente nossas regras com a utilização de roles, onde cada role realiza um conjunto de tarefas específicos. As roles seguem uma composição através de diretório similar a do arquivo de provisionamento, onde o diretório principal é o nome da role, possuindo dentro o diretório tasks e handlers, cada um com seu respectivo `main.yml`, seus arquivo de template e outros. 
+Podemos separa mais eficientemente nossas regras com a utilização de roles, onde cada role realiza um conjunto de tarefas específicos. As roles seguem uma composição através de diretório similar a do arquivo de provisionamento, onde o diretório principal é o nome da role, possuindo dentro o diretório tasks e handlers, cada um com seu respectivo `main.yml`, seus arquivo de template e outros.
 
 Desta forma, podemos estruturar nosso projeto da seguinte forma:
 
@@ -478,4 +478,21 @@ Desta forma o arquivo playbook principal fica bem mais enxuto:
   roles:
     - webserver
     - wordpress
+```
+
+É importante perceber que as nossas roles dependem de variáveis que são passadas através do group_vars, mas caso o usuário não defina elas podemos definir valores padrões criando um diretório chamado `defaults`. Dentro dele teremos nossa definição de variável com seu valor padrão, caso o usuário não passe nenhum valor, este será assumido:
+
+```yml
+---
+wp_host_ip:
+  - localhost
+  - '127.0.0.1'
+```
+
+Além disso também podemos definir dependências entre roles, para isto é importante que possamos declarar estas depêndencias (por exemplo, como wordpress depende de webserver), para isto criamos apenas um diretório `meta` na role e declaramos a dependência no main.yml:
+
+```yml
+---
+dependencies:
+  - webserver
 ```
