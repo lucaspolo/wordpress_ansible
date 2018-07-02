@@ -418,3 +418,64 @@ Salvamos este arquivo em diretório templates, depois criamos a nossa task no lu
 ```
 
 Assim ele irá copiar o arquivo aplicando a variável necessária.
+
+## Aula 8: Usando roles, dependências e defaults
+
+Podemos separa mais eficientemente nossas regras com a utilização de roles, onde cada role realiza um conjunto de tarefas específicos. As roles seguem uma composição através de diretório similar a do arquivo de provisionamento, onde o diretório principal é o nome da role, possuindo dentro o diretório tasks e handlers, cada um com seu respectivo `main.yml`, seus arquivo de template e outros. 
+
+Desta forma, podemos estruturar nosso projeto da seguinte forma:
+
+```bash
+roles
+├── mysql
+│   ├── files
+│   │   └── my.cnf
+│   ├── handlers
+│   │   └── main.yml
+│   └── tasks
+│       └── main.yml
+├── webserver
+│   ├── handlers
+│   │   └── main.yml
+│   └── tasks
+│       └── main.yml
+└── wordpress
+    ├── handlers
+    │   └── main.yml
+    ├── tasks
+    │   └── main.yml
+    └── templates
+        └── 000-default.conf.j2
+```
+
+As roles recebem apenas seu código principal, por exemplo as tasks em `webserver`, como você já está no diretório tasks, não é necessário informar no arquivo:
+
+```yml
+---
+- name: 'Instala pacotes de dependência do sistema operacional'
+  apt:
+    name: "{{ item }}"
+    state: latest
+  become: yes
+  with_items:
+    - php5
+    - apache2
+    - libapache2-mod-php5
+    - php5-gd
+    - libssh2-php
+    - php5-mcrypt
+    - php5-mysql
+```
+
+Desta forma o arquivo playbook principal fica bem mais enxuto:
+
+```yml
+---
+- hosts: database
+  roles:
+    - mysql
+- hosts: wordpress
+  roles:
+    - webserver
+    - wordpress
+```
